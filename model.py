@@ -14,7 +14,7 @@ class Model(tf.keras.Model):
     def __init__(self, k_mix=4, state_size=32, n_bins=None, mode=None):
         super().__init__()
         # K components for Gaussian Mixture
-        self.K = k_mix
+        self.K = max(2, k_mix)
         # hidden state size for RNNs
         self.state_size = state_size
         # number of log-mel bins
@@ -87,37 +87,19 @@ class Model(tf.keras.Model):
         return outputs
 
     @tf.function
-    def loss_func(self, outputs, targets):
-        if self.K == 1 or self.mode == 'baseline':
-            mu, scale = tf.split(outputs, 2, axis=-1)
-            mu = tf.squeeze(mu, -1)
-            scale = tf.squeeze(scale, -1)
-            dist = tfd.Normal(loc=mu, scale=tf.math.softplus(scale))
-            loss = -dist.log_prob(targets)
-        else:
-            mu, scale, alpha = tf.split(outputs, 3, axis=-1)
-            gaussian_mix = tfd.MixtureSameFamily(
-                mixture_distribution=tfd.Categorical(probs=tf.nn.softmax(alpha)),
-                components_distribution=tfd.Normal(loc=mu, scale=tf.math.softplus(scale)))
-            loss = -gaussian_mix.log_prob(targets)
-        loss = tf.reduce_mean(loss)
+    def compute_loss(self, X, step, summary=False):
+        gaussian_params = self.call(X)  # (8, 128, 80) -> (8, 128, 80, 3K)
+        mu, scale, alpha = tf.split(gaussian_params, 3, axis=-1)
+
+        gaussian = tfd.MixtureSameFamily(
+            mixture_distribution=tfd.Categorical(probs=tf.nn.softmax(alpha)),
+            components_distribution=tfd.Normal(loc=mu, scale=tf.math.softplus(scale)))
+        loss = -gaussian.log_prob(X).reduce_mean()
+
+        if summary:
+            tf.summary.histogram('mu', mu, step=step)
+            tf.summary.histogram('scale', scale, step=step)
+            tf.summary.histogram('alpha', alpha, step=step)
+            tf.summary.scalar('loss', loss, step=step)
+
         return loss
-
-    @tf.function
-    def compute_loss(self, inputs, targets):
-        outputs = self.call(inputs, targets)  # (8, 128, 80) -> (8, 128, 80, 3K)
-        return self.loss_func(outputs, targets)
-
-    @tf.function
-    def compute_loss_with_summaries(self, inputs, targets, global_step):
-        outputs = self.call(inputs, targets)  # (8, 128, 80) -> (8, 128, 80, 3K)
-        if self.K == 1 or self.mode == 'baseline':
-            mu, scale = tf.split(outputs, 2, axis=-1)
-            tf.summary.histogram('mu', mu, step=global_step)
-            tf.summary.histogram('scale', scale, step=global_step)
-        else:
-            mu, scale, alpha = tf.split(outputs, 3, axis=-1)
-            tf.summary.histogram('mu', mu, step=global_step)
-            tf.summary.histogram('scale', scale, step=global_step)
-            tf.summary.histogram('alpha', alpha, step=global_step)
-        return self.loss_func(outputs, targets)
