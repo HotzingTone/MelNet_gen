@@ -11,33 +11,25 @@ class Model(tf.keras.Model):
     """
     Implements model architecture
     """
-    def __init__(self, k_mix=4, state_size=32, n_bins=None, mode=None):
+    def __init__(self, k_mix=4, state_size=32):
         super().__init__()
         # K components for Gaussian Mixture
         self.K = max(2, k_mix)
         # hidden state size for RNNs
         self.state_size = state_size
-        # number of log-mel bins
-        self.n_bins = n_bins
+
+        self.n_bins = None
         self.n_frames = None
         self.n_samples = None
-        # optional Baseline mode or default MelNet mode
-        self.mode = mode
+
         self.wc_0 = tf.keras.layers.Dense(self.state_size, use_bias=False)  # see formula [12] in paper
-        if self.mode == 'baseline':
-            print('\nUsing Baseline model...')
-            self.net_baseline = Stacks(state_size=self.state_size, k_mix=1, mode='baseline')
-            self.dense = tf.keras.layers.Dense(self.n_bins * 2)  # mu, scale
-        else:
-            self.wt_0 = tf.keras.layers.Dense(self.state_size, use_bias=False)  # see formula [7] in paper
-            self.wf_0 = tf.keras.layers.Dense(self.state_size, use_bias=False)  # see formula [9] in paper
-            print('\nUsing MelNet model...')
-            self.net_layer_1 = Stacks(state_size=self.state_size, k_mix=k_mix)
-            self.net_layer_2 = Stacks(state_size=self.state_size, k_mix=k_mix)
-            if self.K == 1:
-                self.dense = tf.keras.layers.Dense(2)  # mu, scale
-            else:
-                self.dense = tf.keras.layers.Dense(self.K * 3)  # mu, scale, alpha
+        self.wt_0 = tf.keras.layers.Dense(self.state_size, use_bias=False)  # see formula [7] in paper
+        self.wf_0 = tf.keras.layers.Dense(self.state_size, use_bias=False)  # see formula [9] in paper
+
+        self.net_layer_1 = Stacks(state_size=self.state_size, k_mix=k_mix)
+        self.net_layer_2 = Stacks(state_size=self.state_size, k_mix=k_mix)
+
+        self.dense = tf.keras.layers.Dense(self.K * 3)  # mu, scale, alpha
 
     @tf.function
     def call(self, inputs, targets):

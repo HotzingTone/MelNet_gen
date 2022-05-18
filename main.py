@@ -13,7 +13,6 @@ from data import DataSource
 # print('\n', list_physical_devices('GPU'), '\n')
 
 
-
 # MelNet uses Gaussian Mixture with K components that models log-mel parameters for each bin
 source = DataSource('./CodeLab_TestData')
 model = Model(k_mix=4, n_bins=80)
