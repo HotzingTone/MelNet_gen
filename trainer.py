@@ -27,10 +27,10 @@ class Trainer(object):
 
     def epoch_training(self, step: tf.Tensor, optimizer, model, data):
 
-        for i, X in enumerate(data):  # (..., 8, 128, 5) one epoch
+        for i, X in enumerate(data):
             summary = random.random() < 0.1
             with tf.GradientTape() as tape:
-                loss = model.compute_loss(X, step, summary)
+                loss = model.compute_loss(X, step, False)  # todo Put back summary later
                 print(f'Step {step}, Loss {loss}')
             gradients = tape.gradient(loss, model.trainable_variables)
             optimizer.apply_gradients(zip(gradients, model.trainable_variables))

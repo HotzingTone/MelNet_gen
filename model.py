@@ -20,7 +20,7 @@ class Model(tf.keras.Model):
 
         self.n_bins = None
         self.n_frames = None
-        self.n_samples = None
+        self.n_windows = None
 
         self.wc_0 = tf.keras.layers.Dense(self.state_size, use_bias=False)  # see formula [12] in paper
         self.wt_0 = tf.keras.layers.Dense(self.state_size, use_bias=False)  # see formula [7] in paper
@@ -32,13 +32,13 @@ class Model(tf.keras.Model):
         self.dense = tf.keras.layers.Dense(self.K * 3)  # mu, scale, alpha
 
     @tf.function
-    def call(self, inputs, targets):
-        self.n_samples, self.n_frames, self.n_bins = inputs.shape  # (8, 128, 80)
+    def call(self, X):
+        self.n_windows, self.n_frames, self.n_bins = X.shape  # (..., 128, 512)
 
         # x_c take a whole frame as one step of input for RNN,
         # used as inputs for centralized stack
         # project x to h, see formula [12], output shape (8, 1, 128, 16)
-        x_c = tf.reshape(inputs, [self.n_samples, 1, self.n_frames, self.n_bins])
+        x_c = tf.reshape(X, [self.n_samples, 1, self.n_frames, self.n_bins])
         h_c = self.wc_0(x_c)
 
         if self.mode == 'baseline':
@@ -51,7 +51,7 @@ class Model(tf.keras.Model):
             # x_t is one frame earlier than targets,
             # used as inputs for time-delayed stack
             # project x to h, see formula [7], output shape (8, 128, 80, 16)
-            x_t = tf.expand_dims(inputs, axis=-1)
+            x_t = tf.expand_dims(X, axis=-1)
             h_t = self.wt_0(x_t)
             # x_f is one log-mel bin lower than targets,
             # used as input for frequency-delayed stack,
