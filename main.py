@@ -3,7 +3,7 @@ from tensorflow.python.framework.config import list_physical_devices
 from mel_data_source import MelDataSource
 from model import Model
 from trainer import Trainer
-from data import create_dataset
+from data import Data
 
 
 # print(f'\nTensorFlow ver. {tf.__version__}')
@@ -23,6 +23,7 @@ from data import create_dataset
 # model_melnet = Model(k_mix=4, n_bins=data_source.mel_dim)
 # Trainer('train_reports/melnet', data_source, model_melnet).run(n_epochs)
 
-dataset = create_dataset('./CodeLab_TestData')
+D = Data('./CodeLab_TestData')
+dataset = D.create_dataset()
 for i, d in enumerate(dataset):
     print(i, d.shape)
