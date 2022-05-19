@@ -10,20 +10,15 @@ class DataSource:
         self.hop_size = None
 
     @tf.function
-    def split_freq(self, windows):
-        _, f, b = windows.shape
-        windows = tf.reshape(windows, [-1, f, int(b / 2), 2])
-        even = windows[..., 0]
-        odd = windows[..., 1]
-        return even, odd
-
-    @tf.function
-    def split_time(self, windows):
-        _, f, b = windows.shape
-        windows = tf.reshape(windows, [-1, int(f / 2), 2, b])
-        even = windows[..., 0, :]
-        odd = windows[..., 1, :]
-        return even, odd
+    def split(self, windows):
+        _, t, f = windows.shape
+        windows = tf.reshape(windows, [-1, t, int(f/2), 2])
+        even_freq = windows[..., 0]
+        odd_freq = windows[..., 1]
+        odd_freq = tf.reshape(odd_freq, [-1, int(t/2), 2, int(f/2)])
+        even_time = odd_freq[..., 0, :]
+        odd_time = odd_freq[..., 1, :]
+        return even_freq, even_time, odd_time
 
     @tf.function
     def get_tiers(self, file):
@@ -33,14 +28,12 @@ class DataSource:
         windows = tf.signal.frame(magnitude, 128, 64, axis=0, pad_end=True)
         # discards the last window and the last bin
         # shape (n_windows, 128_frames, 512_bins)  # todo Add back the last bin later
-        odd = windows[:-1, :, :-1]
+        odd_time = windows[:-1, :, :-1]
         tiers = []
         for i in range(6):
-            even, odd = self.split_freq(odd)
-            tiers.append(even)
-            even, odd = self.split_time(odd)
-            tiers.append(even)
-        tiers.append(odd)
+            even_freq, even_time, odd_time = self.split(odd_time)
+            tiers.extend([even_freq, even_time])
+        tiers.append(odd_time)
         # all tier shapes:
         # (None, 128, 256)
         # (None, 64, 256)
