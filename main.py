@@ -20,8 +20,8 @@ source = DataSource('./CodeLab_TestData')
 # Trainer('train_reports/melnet', source, model).run(n_epochs)
 
 data = source.get_data()
-for i, d in enumerate(data):
+for i, X in enumerate(data):
     print()
     print(i)
-    for tier in d:
-        print(tier.shape)
+    for tier in X:
+        print(tier[0].shape, tier[1].shape)
