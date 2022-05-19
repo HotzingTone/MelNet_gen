@@ -18,7 +18,7 @@ class DataSource:
         tier = tf.reshape(odd_freq, [-1, 2, f, 1])
         even_time = tier[:, 0, :, :]
         odd_time = tier[:, 1, :, :]
-        return (even_freq, odd_freq), (even_time, odd_time)
+        return {'even': even_freq, 'odd': odd_freq}, {'even': even_time, 'odd': odd_time}
 
     @tf.function
     def get_tiers(self, file):
@@ -30,7 +30,7 @@ class DataSource:
         tiers = []
         for i in range(6):
             pair_freq, pair_time = self.split(tier)
-            _, tier = pair_time
+            tier = pair_time['odd']
             tiers.extend([pair_freq, pair_time])
         # all 12 tiers' shapes:
         # (None, 256, 1)

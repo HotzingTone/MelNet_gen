@@ -24,4 +24,4 @@ for i, X in enumerate(data):
     print()
     print(i)
     for tier in X:
-        print(tier[0].shape, tier[1].shape)
+        print(tier['even'].shape, tier['odd'].shape)
