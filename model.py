@@ -28,16 +28,14 @@ class Model(tf.keras.Model):
         for i in range(13):
             self.stacks.append(Stacks(state_size=self.state_size, k_mix=k_mix))
 
-        # self.net_layer_1 = Stacks(state_size=self.state_size, k_mix=k_mix)
-        # self.net_layer_2 = Stacks(state_size=self.state_size, k_mix=k_mix)
-
         self.dense = tf.keras.layers.Dense(self.K * 3)  # mu, scale, alpha
 
     @tf.function
     def train(self, X):
         odd_params = []
-        for i, x_tier in enumerate(X):
-            odd_params.append(self.stacks[i](x_tier['even']))
+        for i, tier in enumerate(X):
+            even_x = tier['even']
+            odd_params.append(self.stacks[i](even_x))
         return odd_params
 
     @tf.function
@@ -61,7 +59,9 @@ class Model(tf.keras.Model):
             gaussian = tfd.MixtureSameFamily(
                 mixture_distribution=tfd.Categorical(probs=tf.nn.softmax(alpha)),
                 components_distribution=tfd.Normal(loc=mu, scale=tf.math.softplus(scale)))
-            loss += -gaussian.log_prob(X[i]['odd']).reduce_mean()
+            odd_x = X[i]['odd']
+            nll = -gaussian.log_prob(tf.squeeze(odd_x, -1))
+            loss += tf.reduce_mean(nll)
 
         if summary:
             tf.summary.histogram('mu', mu, step=step)

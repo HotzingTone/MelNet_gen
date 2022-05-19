@@ -26,6 +26,7 @@ class Stacks(tf.keras.layers.Layer):
             self.state_size, use_bias=False  # see formula [6] in paper
         )
         self.dense = tf.keras.layers.Dense(self.K * 3)
+
     @tf.function
     def call(self, even_x):
         even_h = self.wt_0(even_x)

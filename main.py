@@ -15,13 +15,13 @@ from data import DataSource
 
 # MelNet uses Gaussian Mixture with K components that models log-mel parameters for each bin
 source = DataSource('./CodeLab_TestData')
-# model = Model(k_mix=4)
-# n_epochs = 1
-# Trainer('train_reports/melnet', source, model).run(n_epochs)
+model = Model(k_mix=4)
+n_epochs = 1
+Trainer('train_reports/melnet', source, model).run(n_epochs)
 
-data = source.get_data()
-for i, X in enumerate(data):
-    print()
-    print(i)
-    for tier in X:
-        print(tier['even'].shape, tier['odd'].shape)
+# data = source.get_data()
+# for i, X in enumerate(data):
+#     print()
+#     print(i)
+#     for tier in X:
+#         print(tier['even'].shape, tier['odd'].shape)

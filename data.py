@@ -27,11 +27,11 @@ class DataSource:
         spectrogram = tf.abs(tf.signal.stft(audio, self.fft_size, self.hop_size, pad_end=True))
         spectrogram = tf.signal.frame(spectrogram[:, :-1], 64, 64, axis=0, pad_end=True)
         tier = tf.reshape(spectrogram, [-1, 512, 1])  # todo Add back the last bin later
-        tiers = []
+        X = []
         for i in range(6):
             pair_freq, pair_time = self.split(tier)
             tier = pair_time['odd']
-            tiers.extend([pair_freq, pair_time])
+            X.extend([pair_freq, pair_time])
         # all 12 tiers' shapes:
         # (None, 256, 1)
         # (None/2, 256, 1)
@@ -45,8 +45,8 @@ class DataSource:
         # (None/32, 16, 1)
         # (None/32, 8, 1)
         # (None/64, 8, 1)
-        tiers.reverse()
-        return tiers
+        X.reverse()
+        return X
 
     def get_data(self, fft_size=1024, hop_size=256):
         self.fft_size = fft_size
