@@ -35,10 +35,10 @@ class Model(tf.keras.Model):
 
     @tf.function
     def train(self, X):
-        gaussian_params = []
+        odd_params = []
         for i, x_tier in enumerate(X):
-            gaussian_params.append(self.stacks[i](x_tier['even']))
-        return gaussian_params
+            odd_params.append(self.stacks[i](x_tier['even']))
+        return odd_params
 
     @tf.function
     def generate(self):
@@ -54,10 +54,10 @@ class Model(tf.keras.Model):
 
     @tf.function
     def compute_loss(self, X, step, summary=False):
-        gaussian_params = self.train(X)
+        odd_params = self.train(X)
         loss = 0
-        for i, p_tier in enumerate(gaussian_params):
-            mu, scale, alpha = tf.split(p_tier, 3, axis=-1)
+        for i, odd_p in enumerate(odd_params):
+            mu, scale, alpha = tf.split(odd_p, 3, axis=-1)
             gaussian = tfd.MixtureSameFamily(
                 mixture_distribution=tfd.Categorical(probs=tf.nn.softmax(alpha)),
                 components_distribution=tfd.Normal(loc=mu, scale=tf.math.softplus(scale)))

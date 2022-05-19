@@ -2,14 +2,11 @@ import tensorflow as tf
 
 
 class Stacks(tf.keras.layers.Layer):
-    """
-    Time-delayed stack -> Centralized stack -> Frequency-delayed stack
-    """
     def __init__(self, state_size=16, k_mix=4):
         super().__init__()
-        self.state_size = state_size  # small size 16 for demo
-        self.K = k_mix  # K components for Gaussian Mixture
-        # time-delayed units
+        self.state_size = state_size
+        self.K = k_mix
+
         self.gru_forth = tf.keras.layers.GRU(
             self.state_size, return_sequences=True, time_major=True
         )
@@ -28,18 +25,19 @@ class Stacks(tf.keras.layers.Layer):
         self.Wt = tf.keras.layers.Dense(
             self.state_size, use_bias=False  # see formula [6] in paper
         )
-        # final linear layer
         self.dense = tf.keras.layers.Dense(self.K * 3)
-
-    def call(self, x_tier):
-        h_tier = self.wt_0(x_tier)
+    @tf.function
+    def call(self, even_x):
+        even_h = self.wt_0(even_x)
         # run 4 RNNs in different directions
-        RNN_forth = self.gru_forth(h_tier)
-        RNN_back = self.gru_back(h_tier)
-        RNN_up = self.gru_up(h_tier)
-        RNN_down = self.gru_down(h_tier)
+        RNN_forth = self.gru_forth(even_h)
+        RNN_back = self.gru_back(even_h)
+        RNN_up = self.gru_up(even_h)
+        RNN_down = self.gru_down(even_h)
         # concatenate hidden states of 4 RNNs as input to residual block
         RNNs = tf.concat([RNN_forth, RNN_back, RNN_up, RNN_down], axis=-1)
         # residual block, see formula [6], output shape (n_frames, n_bins, 16)
-        p_tier = self.dense(self.Wt(RNNs) + h_tier)
-        return p_tier
+        odd_h = self.Wt(RNNs) + even_h
+        # gaussian parameters for
+        odd_p = self.dense(odd_h)
+        return odd_p
