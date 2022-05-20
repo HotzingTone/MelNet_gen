@@ -20,7 +20,7 @@ class DataSource:
         odd_time = tier[:, 1, :, :]
         return {'even': even_freq, 'odd': odd_freq}, {'even': even_time, 'odd': odd_time}
 
-    @tf.function
+    @tf.function  # ?
     def get_tiers(self, file):
         audio, _ = tf.audio.decode_wav(tf.io.read_file(file))
         audio = tf.squeeze(audio, axis=-1)
