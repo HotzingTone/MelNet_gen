@@ -37,7 +37,7 @@ class Model(tf.keras.Model):
         for i, tier in enumerate(X):
             even_x = tier['even']
             odd_params.append(self.stack_tiers[i](even_x))  # (n_frames, n_bins, 3K)
-
+            # bottom tier sequential generator training
             if i == 0:
                 # bottom tier, one frame per rnn step, (n_frames, 1, 1, 8)
                 bottom_x = tf.reshape(even_x, [-1, 1, 1, 8])

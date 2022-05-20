@@ -7,23 +7,25 @@ class Trainer(object):
     def __init__(self, work_dir, source, model):
         self.work_dir = work_dir
         self.model = model
-        self.train_writer = tf.summary.create_file_writer(f'{work_dir}/train')
-        self.eval_writer = tf.summary.create_file_writer(f'{work_dir}/eval')
-        self.data = source.get_data()
+        self.writer_train = tf.summary.create_file_writer(f'{work_dir}/train')
+        self.writer_eval = tf.summary.create_file_writer(f'{work_dir}/eval')
+        self.data_train = source.get_data()
         self.data_eval = source.get_data(eval_mode=True)
 
-    def run(self, n_epochs=10):
-        step = tf.constant(1, dtype=tf.int64)
-        optimizer = tf.keras.optimizers.Adam()
+    def run(self, n_epochs=10,
+            optimizer=tf.keras.optimizers.Adam(
+                learning_rate=0.0002, global_clipnorm=0.5)
+            ):
+        step = 1
         for epoch_counter in range(n_epochs):
             print(f'\nTraining epoch {epoch_counter}')
-            with self.train_writer.as_default():
-                step = self.epoch_train(step, optimizer, self.model, self.data)
-            with self.eval_writer.as_default():
+            with self.writer_train.as_default():
+                step = self.epoch_train(step, optimizer, self.model, self.data_train)
+            with self.writer_eval.as_default():
                 self.epoch_eval(step, self.model, self.data_eval)
 
-    def epoch_train(self, step: tf.Tensor, optimizer, model, data):
-        for i, X in enumerate(data):
+    def epoch_train(self, step: tf.Tensor, optimizer, model, data_train):
+        for i, X in enumerate(data_train):
             summary = random.random() < 0.1
             with tf.GradientTape() as tape:
                 loss = model.compute_loss(X, step, summary)  # todo Put back summary later
