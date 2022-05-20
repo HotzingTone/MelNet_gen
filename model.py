@@ -8,9 +8,7 @@ tfd = tfp.distributions
 
 
 class Model(tf.keras.Model):
-    """
-    Implements model architecture
-    """
+
     def __init__(self, k_mix=4, h_size=16):
         super().__init__()
         # K components for Gaussian Mixture

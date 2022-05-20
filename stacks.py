@@ -2,6 +2,7 @@ import tensorflow as tf
 
 
 class Stack(tf.keras.layers.Layer):
+
     def __init__(self, h_size=16, k_mix=4):
         super().__init__()
         self.h_size = h_size
