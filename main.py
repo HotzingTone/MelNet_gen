@@ -19,6 +19,10 @@ def train_once():
     n_epochs = 1
     Trainer('train_reports/melnet', source, model).run(n_epochs)
 
+def gen(length):
+    model = Model(k_mix=4)
+    return model.generate(length)
+
 def check_data():
     source = DataSource('./CodeLab_TestData')
     data = source.get_data()
@@ -28,6 +32,9 @@ def check_data():
         for tier in X:
             print(tier['even'].shape, tier['odd'].shape)
 
-train_once()
+# train_once()
+
+sample = gen(3)
+print(sample.shape)
 
 # check_data()
