@@ -1,5 +1,6 @@
 import tensorflow as tf
 import random
+import math
 
 
 class Trainer(object):
@@ -14,7 +15,7 @@ class Trainer(object):
 
     def run(self, n_epochs=10,
             optimizer=tf.keras.optimizers.Adam(
-                learning_rate=0.0002, global_clipnorm=0.5)
+                learning_rate=0.0002, global_clipnorm=0.25)
             ):
         step = 1
         for epoch_counter in range(n_epochs):
@@ -28,11 +29,16 @@ class Trainer(object):
         for i, X in enumerate(data_train):
             summary = random.random() < 0.1
             with tf.GradientTape() as tape:
-                loss = model.compute_loss(X, step, summary)  # todo Put back summary later
+                loss = model.compute_loss(X, step, summary)
+                while math.isnan(loss):
+                    print(f'Got NaN loss, retraining...')
+                    model.load_weights('./checkpoints/params.tf')
+                    loss = model.compute_loss(X, step, summary)
                 print(f'Step {step}, Loss {loss}')
             gradients = tape.gradient(loss, model.trainable_variables)
             optimizer.apply_gradients(zip(gradients, model.trainable_variables))
             step += 1
+            model.save_weights('./checkpoints/params.tf', overwrite=True, save_format='tf')
         return step
 
     def epoch_eval(self, step, model, data_eval):

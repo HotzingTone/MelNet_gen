@@ -28,7 +28,7 @@ class Stack(tf.keras.layers.Layer):
         )
         self.dense = tf.keras.layers.Dense(self.K * 3)
 
-    @tf.function
+    # @tf.function
     def call(self, even_x):
         even_h = self.wt_0(even_x)
         # run 4 RNNs in different directions

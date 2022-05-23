@@ -25,8 +25,9 @@ class Model(tf.keras.Model):
         for i in range(12):
             self.stack_tiers.append(Stack(h_size=self.h_size, k_mix=k_mix))
 
-    # @tf.function  #
-    def train(self, X):
+
+    # @tf.function
+    def call(self, X):
         odd_params = []
         for i, tier in enumerate(X):
             even_x = tier['even']
@@ -48,7 +49,7 @@ class Model(tf.keras.Model):
 
         return bottom_p, odd_params  # (n_frames, 8, 3K), list of 12 (n_frames, 8, 3K)
 
-    @tf.function
+    # @tf.function
     def generate(self, n_frames):
         x = self.init_x
         h = self.init_h
@@ -77,7 +78,7 @@ class Model(tf.keras.Model):
         # final tier (n_frames, 512, 1)
         return even_x
 
-    @tf.function
+    # @tf.function
     def bottom_generator(self, x, h):  # (1, 1, 8) (1, h_size)
         h = self.bottom_gru(x, initial_state=h)
         p = self.bottom_dense(h)  # gaussian params
@@ -87,7 +88,7 @@ class Model(tf.keras.Model):
     # @tf.function
     def compute_loss(self, X, step, summary=False):
         # get gaussian mixture params for each tier
-        bottom_p, odd_params = self.train(X)  # (n_frames, 8, 3K), list of 12 (n_frames, 8, 3K)
+        bottom_p, odd_params = self(X)  # (n_frames, 8, 3K), list of 12 (n_frames, 8, 3K)
         # compute negative log-likelihood for each tier
         loss = 0
         for i, odd_p in enumerate(odd_params):

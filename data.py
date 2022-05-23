@@ -9,7 +9,7 @@ class DataSource:
         self.fft_size = None
         self.hop_size = None
 
-    @tf.function
+    # @tf.function
     def split(self, tier):
         f = int(tier.shape[-2] / 2)  # n_freq / 2
         tier = tf.reshape(tier, [-1, f, 2, 1])
@@ -20,7 +20,7 @@ class DataSource:
         odd_time = tier[:, 1, :, :]
         return {'even': even_freq, 'odd': odd_freq}, {'even': even_time, 'odd': odd_time}
 
-    @tf.function  # ?
+    # @tf.function
     def get_tiers(self, file):
         audio, _ = tf.audio.decode_wav(tf.io.read_file(file))
         audio = tf.squeeze(audio, axis=-1)
@@ -48,6 +48,7 @@ class DataSource:
         X.reverse()
         return X
 
+    # @tf.function
     def get_data(self, eval_mode=False, fft_size=1024, hop_size=256):
         train_files = []
         for i, f in enumerate(self.files):
